@@ -46,7 +46,7 @@ func (s *CacheSuite) TestGetNoExistKey() {
 	testKey := "key"
 	desc := "no exist key"
 	val, err := s.cache.Get(testKey)
-	s.Require().NotEqual(err, nil, desc)
+	s.Require().Equal(err, ErrKeyNotExist, desc)
 	s.Require().Equal(val, nil, desc)
 }
 
@@ -54,8 +54,8 @@ func (s *CacheSuite) TestCacheExpired() {
 	testKey := "key"
 	testValue := "value"
 	desc := "cache expired should return nil"
-	_ = s.cache.Set(testKey, testValue, time.Second)
-	time.Sleep(time.Second * 2)
+	_ = s.cache.Set(testKey, testValue, time.Millisecond)
+	time.Sleep(time.Millisecond * 2)
 	val, err := s.cache.Get(testKey)
 	s.Require().Equal(err, nil, desc)
 	s.Require().Equal(val, nil, desc)

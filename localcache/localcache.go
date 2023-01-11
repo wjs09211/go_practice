@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+var (
+	ErrKeyNotExist = errors.New("key not exist")
+)
+
 // Cache interface implement by localCache
 type Cache interface {
 	// Get value from key
@@ -37,7 +41,7 @@ func (obj *localCache) Get(key string) (any, error) {
 		}
 		return val.data, nil
 	}
-	return nil, errors.New("key not exist")
+	return nil, ErrKeyNotExist
 }
 
 func (obj *localCache) Set(key string, value any, expiredTime time.Duration) error {
