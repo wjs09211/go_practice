@@ -49,7 +49,9 @@ func (s *CacheSuite) TestSet() {
 	for _, t := range tests {
 		err := s.cache.Set(t.Key, t.Value, time.Minute)
 		s.Require().Equal(err, t.Error, t.Desc)
-		s.Require().Equal(s.cache.hash[t.Key].data, t.Value, t.Desc)
+		if err == nil {
+			s.Require().Equal(s.cache.hash[t.Key].data, t.Value, t.Desc)
+		}
 	}
 
 }
@@ -76,8 +78,8 @@ func (s *CacheSuite) TestCacheExpired() {
 	testKey := "key"
 	testValue := "value"
 	desc := "cache expired should return nil value"
-	_ = s.cache.Set(testKey, testValue, time.Millisecond)
-	time.Sleep(time.Millisecond * 2)
+	_ = s.cache.Set(testKey, testValue, time.Millisecond*50)
+	time.Sleep(time.Millisecond * 100)
 	val, err := s.cache.Get(testKey)
 	s.Require().Equal(err, ErrKeyNotExist, desc)
 	s.Require().Equal(val, nil, desc)

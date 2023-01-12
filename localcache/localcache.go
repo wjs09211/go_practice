@@ -21,12 +21,12 @@ type Cache interface {
 
 // New localCache
 func New() Cache {
-	return &localCache{make(map[string]*cacheData), sync.Mutex{}}
+	return &localCache{make(map[string]*cacheData), sync.RWMutex{}}
 }
 
 type localCache struct {
 	hash  map[string]*cacheData
-	mutex sync.Mutex
+	mutex sync.RWMutex
 }
 
 type cacheData struct {
@@ -34,19 +34,27 @@ type cacheData struct {
 	expiredAt time.Time
 }
 
-func (obj *localCache) Get(key string) (any, error) {
-	if val, ok := obj.hash[key]; ok {
-		if val.expiredAt.Before(time.Now()) {
-			return nil, ErrKeyNotExist
-		}
-		return val.data, nil
+func (lc *localCache) Get(key string) (any, error) {
+	lc.mutex.RLock()
+	defer lc.mutex.RUnlock()
+	val, ok := lc.hash[key]
+
+	if !ok {
+		return nil, ErrKeyNotExist
 	}
-	return nil, ErrKeyNotExist
+
+	if val.expiredAt.Before(time.Now()) {
+		delete(lc.hash, key)
+		return nil, ErrKeyNotExist
+	}
+
+	return val.data, nil
+
 }
 
-func (obj *localCache) Set(key string, value any, expiredTime time.Duration) error {
-	obj.mutex.Lock()
-	obj.hash[key] = &cacheData{value, time.Now().Add(expiredTime)}
-	defer obj.mutex.Unlock()
+func (lc *localCache) Set(key string, value any, expiredTime time.Duration) error {
+	lc.mutex.Lock()
+	defer lc.mutex.Unlock()
+	lc.hash[key] = &cacheData{value, time.Now().Add(expiredTime)}
 	return nil
 }
