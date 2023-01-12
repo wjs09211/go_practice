@@ -37,7 +37,7 @@ type cacheData struct {
 func (obj *localCache) Get(key string) (any, error) {
 	if val, ok := obj.hash[key]; ok {
 		if val.expiredAt.Before(time.Now()) {
-			return nil, nil
+			return nil, ErrKeyNotExist
 		}
 		return val.data, nil
 	}
