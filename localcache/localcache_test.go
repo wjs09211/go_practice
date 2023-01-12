@@ -1,7 +1,6 @@
 package localcache
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
@@ -18,17 +17,40 @@ func (s *CacheSuite) SetupSuite() {
 
 func (s *CacheSuite) SetupTest() {
 	// call this before each test case
-	fmt.Println("SetupTest")
 	s.cache = New().(*localCache)
 }
 
 func (s *CacheSuite) TestSet() {
-	testKey := "key"
-	testValue := "value"
-	desc := "normal set"
-	err := s.cache.Set(testKey, testValue, time.Minute)
-	s.Require().Equal(err, nil, desc)
-	s.Require().Equal(s.cache.hash[testKey].data, testValue, desc)
+	tests := []struct {
+		Desc  string
+		Key   string
+		Value any
+		Error error
+	}{
+		{
+			Desc:  "set int",
+			Key:   "int",
+			Value: 1,
+			Error: nil,
+		},
+		{
+			Desc:  "set string",
+			Key:   "string",
+			Value: "string",
+			Error: nil,
+		},
+		{
+			Desc:  "set array",
+			Key:   "array",
+			Value: []int{1, 2, 3},
+			Error: nil,
+		},
+	}
+	for _, t := range tests {
+		err := s.cache.Set(t.Key, t.Value, time.Minute)
+		s.Require().Equal(err, t.Error, t.Desc)
+		s.Require().Equal(s.cache.hash[t.Key].data, t.Value, t.Desc)
+	}
 
 }
 
